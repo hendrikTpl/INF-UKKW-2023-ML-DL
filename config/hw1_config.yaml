@@ -1,0 +1,12 @@
+TRAIN_DIR: ./data/ukrida_dataset/train/
+VAL_DIR: ./data/ukrida_dataset/val/
+TEST_DIR: ./data/ukrida_dataset/test/
+FILE_EXT: png
+EXP_NAME: HW_1
+LEARNING_RATE: 0.0001
+BATCH_SIZE: 8
+VAL_BATCH_SIZE: 1  # evaluate the trained model every n number of samples images
+NUM_WORKERS: 0
+IMAGE_SIZE: 128
+CHANNELS_IMG: 3
+NUM_EPOCHS: 50
