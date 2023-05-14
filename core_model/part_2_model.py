@@ -52,6 +52,18 @@ class simple_D(nn.Module):
         return self.discriminator_D(x)
 
 
+class Alex_D(nn.Module):
+    def __init__(self) -> None:
+        super().__init__()
+        pass
+    #     self.nama_D = nn.Sequential()
+    pass
+
+    def forward(self, x):
+        pass
+        # return self.nama_D(self,x)
+
+
 """
 Impementasi Deep Conv Net GAN (DCGAN)
 
@@ -92,7 +104,18 @@ class DCGAN_D(nn.Module):
         )
 
     def forward(self, x):
+        # x input-> dataset 256 x256 x 3 -> custmize ukrida dataset
         return self.discriminator_D(x)
+
+
+class DCGAN_v2(nn.Module):
+    # disini bisa di define lagi customize DCGAN versi masing masing
+    pass
+
+
+class DCGAN_v2_G(nn.Module):
+    pass
+
 
 # Generator G
 
@@ -138,6 +161,7 @@ def initialize_weights(model):
     for m in model.modules():
         if isinstance(m, (nn.Conv2d, nn.ConvTranspose2d, nn.BatchNorm2d)):
             nn.init.normal_(m.weight.data, 0.0, 0.02)
+            # weight initialization technique, kaiming, method
 
 #
 # TODO:

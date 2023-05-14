@@ -11,7 +11,13 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 # import our model
-from core_model.part_2_model import simple_D, simple_G
+from core_model.part_2_model import simple_D, simple_G  # call model
+
+# for visualize net arch
+from torchsummary import summary
+
+# define something else before
+
 
 if __name__ == '__main__':
 
@@ -22,6 +28,11 @@ if __name__ == '__main__':
     image_dim = 32 * 32 * 3  # 3072
     batch_size = 32
     num_epochs = 5
+
+    # simple_G arch check
+    model_SG = simple_G(z_dim, image_dim)
+    # print model arch
+    summary(model_SG)
 
     # initialize the model instance object
     disc = simple_D(image_dim).to(device)
@@ -53,7 +64,7 @@ if __name__ == '__main__':
     # Trainer
     for epoch in range(num_epochs):
         for batch_idx, (real, _) in enumerate(loader):
-            real = real.view(-1, 3072).to(device)
+            real = real.view(-1, 3072).to(device)  # flatening 32x32x3
             batch_size = real.shape[0]
 
             # Train Discriminator: max log(D(x)) + log(1 - D(G(z)))
