@@ -16,10 +16,44 @@ import torch.optim as optim
 import torchvision
 import torchvision.transforms as transforms
 import torchvision.datasets as datasets
-from torch.utils.data import DataLoader
+from torch.utils.data import Dataset, DataLoader
 from torch.utils.tensorboard import SummaryWriter  # to print to tensorboard
 import matplotlib.pyplot as plt
 import numpy as np
+
+
+class IndonesianStreetFoodDataset(Dataset):
+    def __init__(self, data_dir, transform=None):
+        self.data_dir = data_dir
+        self.transform = transform
+        self.file_list = os.listdir(self.data_dir)
+        
+    def __len__(self):
+        return len(self.file_list)
+        
+    def __getitem__(self, index):
+        file_name = self.file_list[index]
+        image = Image.open(os.path.join(self.data_dir, file_name))
+        
+        if self.transform:
+            image = self.transform(image)
+            
+        return image
+
+# Define the transformations for your dataset
+transform = transforms.Compose([
+    transforms.Resize((64, 64)),
+    transforms.ToTensor(),
+    transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
+])
+
+# Create an instance of your custom dataset
+data_dir = 'data/IndonesianStreetFood'
+dataset = IndonesianStreetFoodDataset(data_dir, transform=transform)
+
+# Create a DataLoader for your dataset
+batch_size = 32
+dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
 
 
 # ini implementasi GAN sederhana
