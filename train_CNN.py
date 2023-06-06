@@ -12,115 +12,87 @@ from MyUtils.MyDatasets import UkridaDataset_v1
 from core_model.part_1_model import YourOwnCNN
 from PIL import Image
 
-# Mendefinisikan parameter-parameter pelatihan
-num_epochs = 8
+torch.manual_seed(0)
+
+num_epochs = 50
 batch_size = 8
 learning_rate = 0.001
-validation_split = 0.2 
+validation_split = 0.2
 
-# Memeriksa apakah CUDA (GPU) tersedia dan mengatur perangkat yang akan digunakan
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-# Mentransformasi gambar dengan resize, konversi ke tensor, dan normalisasi
+# Transformasi yang diterapkan pada gambar
 transform = transforms.Compose([
-    transforms.Resize((32, 32)), 
-    transforms.ToTensor(),
-    transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+    transforms.Resize((32, 32)),  # Mengubah ukuran gambar menjadi 32x32 piksel
+    transforms.ToTensor(),  # Mengonversi gambar menjadi tensor
+    transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))  # Normalisasi gambar dengan mean dan standard deviation
 ])
 
-# Mendefinisikan daftar direktori root dataset
-root_dirs = ["data/MyDataset/Bakso", "data/MyDataset/Batagor", "data/MyDataset/Mie Ayam"]
+# Direktori root untuk dataset pelatihan dan validasi
+train_root_dirs = ["data/ukrida_dataset/train/Bakso", "data/ukrida_dataset/train/Batagor", "data/ukrida_dataset/train/Mie Ayam"]
+val_root_dirs = ["data/ukrida_dataset/val/Bakso", "data/ukrida_dataset/val/Batagor", "data/ukrida_dataset/val/Mie Ayam"]
 
-# Membuat objek dataset berdasarkan direktori root dan transformasi yang telah didefinisikan
-dataset = UkridaDataset_v1(root_dirs, transform=transform) 
+# Membuat dataset pelatihan
+train_dataset = UkridaDataset_v1(train_root_dirs, transform=transform)
 
-# Memeriksa apakah dataset kosong dan keluar dari program
-if len(dataset) == 0:
-    print("No data found in the dataset. Check if the dataset is empty or the path is correct.")
+# Memeriksa apakah dataset pelatihan kosong
+if len(train_dataset) == 0:
+    print("No data found in the training dataset. Check if the dataset is empty or the path is correct.")
     exit()
 
-# Menghitung ukuran dataset validasi berdasarkan persentase pembagian
-val_size = int(validation_split * len(dataset))
-train_size = len(dataset) - val_size
+# Menghitung jumlah data untuk dataset validasi
+val_size = int(validation_split * len(train_dataset))
+train_size = len(train_dataset) - val_size
 
-# Membagi dataset menjadi subset pelatihan dan validasi secara acak
-train_dataset, val_dataset = random_split(dataset, [train_size, val_size])
+# Membagi dataset pelatihan menjadi dataset pelatihan dan validasi berdasarkan persentase yang ditentukan
+train_dataset, val_dataset = random_split(train_dataset, [train_size, val_size])
 
-# Membuat data loader untuk subset pelatihan dan validasi
+# Membuat data loader untuk pelatihan dan validasi
 train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 val_dataloader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
 
-# Membuat objek model CNN yang telah didefinisikan dan memindahkan model ke perangkat yang ditentukan
-model = YourOwnCNN().to(device)
+# Membuat model CNN
+model = YourOwnCNN()
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+model.to(device)
 
-# Menentukan fungsi loss (CrossEntropyLoss) dan algoritma optimizer (Adam)
+# Menggunakan fungsi loss CrossEntropyLoss
 criterion = nn.CrossEntropyLoss()
+# Menggunakan optimizer Adam untuk mengoptimasi parameter model
 optimizer = optim.Adam(model.parameters(), lr=learning_rate)
 
-# Menghitung jumlah langkah pelatihan berdasarkan data loader
-total_step = len(train_dataloader)
-
-# Memeriksa apakah data loader pelatihan kosong dan keluar dari program
-if total_step == 0:
-    print("No data found in the train dataloader. Check if the dataset is empty or the path is correct.")
-    exit()
-
-# Melakukan pelatihan model selama jumlah epoch yang telah ditentukan
+# Loop untuk setiap epoch pelatihan
 for epoch in range(num_epochs):
+    model.train()
     running_loss = 0.0
     correct = 0
     total = 0
     
-    # Iterasi melalui setiap batch data dalam data loader pelatihan
-    for i, (images, labels) in enumerate(train_dataloader):
+    # Loop untuk setiap batch dalam data loader pelatihan
+    for images, labels in train_dataloader:
         images = images.to(device)
         labels = labels.to(device)
-
-        # Melakukan forward pass (menghasilkan output model)
-        outputs = model(images)
-
-        # Menghitung nilai loss berdasarkan output dan label
-        loss = criterion(outputs, labels)
-
-        # Menghapus gradien sebelum melakukan backpropagation
+        
         optimizer.zero_grad()
-
-        # Melakukan backpropagation (menghitung gradien)
+        
+        # Menghitung output dari model
+        outputs = model(images)
+        # Menghitung loss berdasarkan output dan label
+        loss = criterion(outputs, labels)
+        # Menghitung gradien dan melakukan backpropagation
         loss.backward()
-
-        # Melakukan update parameter berdasarkan gradien menggunakan optimizer
+        # Mengupdate parameter model menggunakan optimizer
         optimizer.step()
-
+        
+        # Menghitung loss rata-rata dalam satu epoch
         running_loss += loss.item()
-
-        # Menghitung jumlah prediksi yang benar dan total label
+        # Menghitung jumlah prediksi yang benar dan total data
         _, predicted = torch.max(outputs.data, 1)
         total += labels.size(0)
         correct += (predicted == labels).sum().item()
-
-        # Menampilkan informasi loss setiap 100 langkah
-        if (i + 1) % 100 == 0:
-            print(f"Epoch [{epoch+1}/{num_epochs}], Step [{i+1}/{total_step}], Loss: {loss.item():.4f}")
-
-    # Menghitung rata-rata loss dan akurasi epoch
+    
     epoch_loss = running_loss / len(train_dataloader)
     epoch_accuracy = 100 * correct / total
-    print(f"Epoch [{epoch+1}/{num_epochs}], Loss: {epoch_loss:.4f}")
+    print(f"Epoch [{epoch+1}/{num_epochs}], Loss: {epoch_loss:.4f}, Accuracy: {epoch_accuracy:.2f}%")
 
-    val_correct = 0
-    val_total = 0
-
-    # Evaluasi model pada data validasi tanpa perhitungan gradien
-    with torch.no_grad():
-        for images, labels in val_dataloader:
-            images = images.to(device)
-            labels = labels.to(device)
-
-            val_outputs = model(images)
-            _, val_predicted = torch.max(val_outputs.data, 1)
-            val_total += labels.size(0)
-            val_correct += (val_predicted == labels).sum().item()
-
-# Menghitung akurasi akhir pada data pelatihan
-final_accuracy = 100 * correct / total
-print(f"Training finished. Final Accuracy: {final_accuracy:.2f}%")
+# Menyimpan parameter model setelah pelatihan
+torch.save(model.state_dict(), "train/CNN/train_CNN.pth")
+print("Training finished. Model saved.")

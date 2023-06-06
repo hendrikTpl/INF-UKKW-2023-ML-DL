@@ -26,7 +26,7 @@ class YourOwnCNN(nn.Module):
         self.relu3 = nn.ReLU()
         
         # Layer fully connected kedua (output layer)
-        self.fc2 = nn.Linear(64, 4)  # Update input size here
+        self.fc2 = nn.Linear(64, 4)
 
     # Metode forward untuk melakukan forward pass pada model
     def forward(self, x):

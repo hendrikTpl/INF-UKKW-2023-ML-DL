@@ -1,125 +1,68 @@
-# /**
-#  * @author Hendrik
-#  * @email [hendrik.gian@gmail.com]
-#  * @create date 2023-04-17 23:31:58
-#  * @modify date 2023-04-17 23:31:58
-#  * @desc [description]
-#  */
+# Kelompok 3
+# 412020001 - Nico Sanjaya
+# 412020008 - Cristha Patrisya Pentury
+# 412020009 - Yohanes Stefanus
 
-# A) simpleGAN
-# B) Deep Conv Net GAN (DCGAN)implementation from the scratch
-
-# import libraries yang dibutuhkan
-import torch
 import torch.nn as nn
 import torch.optim as optim
 import torchvision
 import torchvision.transforms as transforms
 import torchvision.datasets as datasets
 from torch.utils.data import DataLoader
-from torch.utils.tensorboard import SummaryWriter  # to print to tensorboard
+from torch.utils.tensorboard import SummaryWriter
 import matplotlib.pyplot as plt
 import numpy as np
 
-
-# ini implementasi GAN sederhana
-# discriminator D dan generator G yang digunakan disini adalah Fully-Connected NN
+# Model Generator untuk simple GAN
 class simple_G(nn.Module):
     def __init__(self, z_dim, img_dim):
         super().__init__()
         self.generator_G = nn.Sequential(
-            nn.Linear(z_dim, 256),
-            nn.LeakyReLU(0.01),
-            nn.Linear(256, img_dim),
-            nn.Tanh(),  # normalize inputs to [-1, 1] so make outputs [-1, 1]
+            nn.Linear(z_dim, 256),  # Layer linier untuk menghubungkan noise ke lapisan tersembunyi
+            nn.LeakyReLU(0.01),  # Fungsi aktivasi LeakyReLU untuk memperkenalkan non-linearitas
+            nn.Linear(256, img_dim),  # Layer linier untuk menghasilkan gambar output
+            nn.Tanh(),  # Fungsi aktivasi Tanh untuk membatasi nilai output antara -1 dan 1
         )
 
     def forward(self, x):
-        return self.generator_G(x)
+        return self.generator_G(x)  # Langkah maju dari generator
 
-
+# Model Diskriminator untuk simple GAN
 class simple_D(nn.Module):
     def __init__(self, in_features):
         super().__init__()
         self.discriminator_D = nn.Sequential(
-            nn.Linear(in_features, 128),
-            nn.LeakyReLU(0.1),
-            nn.Linear(128, 1),
-            nn.Sigmoid(),
+            nn.Linear(in_features, 128),  # Layer linier untuk menghubungkan input ke lapisan tersembunyi
+            nn.LeakyReLU(0.1),  # Fungsi aktivasi LeakyReLU untuk memperkenalkan non-linearitas
+            nn.Linear(128, 1),  # Layer linier untuk menghasilkan nilai probabilitas diskriminasi
+            nn.Sigmoid(),  # Fungsi aktivasi sigmoid untuk menghasilkan nilai probabilitas antara 0 dan 1
         )
 
     def forward(self, x):
-        return self.discriminator_D(x)
+        return self.discriminator_D(x)  # Langkah maju dari diskriminator
 
-
+# Model Diskriminator berdasarkan AlexNet
 class Alex_D(nn.Module):
     def __init__(self) -> None:
         super().__init__()
         pass
-    #     self.nama_D = nn.Sequential()
     pass
 
     def forward(self, x):
         pass
-        # return self.nama_D(self,x)
-
-
-"""
-Impementasi Deep Conv Net GAN (DCGAN)
-
-"""
-
-# class Discriminator
-
-
-class DCGAN_D(nn.Module):
-    def __init__(self, channels_img, features_d):
-        super(DCGAN_D, self).__init__()
-        self.discriminator_D = nn.Sequential(
-            # input: N x channels_img x 64 x 64
-            nn.Conv2d(channels_img, features_d,
-                      kernel_size=4, stride=2, padding=1),
-            nn.LeakyReLU(0.2),
-            # _block(in_channels, out_channels, kernel_size, stride, padding)
-            self._block(features_d, features_d * 2, 4, 2, 1),
-            self._block(features_d * 2, features_d * 4, 4, 2, 1),
-            self._block(features_d * 4, features_d * 8, 4, 2, 1),
-            # After all _block img output is 4x4 (Conv2d below makes into 1x1)
-            nn.Conv2d(features_d * 8, 1, kernel_size=4, stride=2, padding=0),
-            nn.Sigmoid(),
-        )
-
-    def _block(self, in_channels, out_channels, kernel_size, stride, padding):
-        return nn.Sequential(
-            nn.Conv2d(
-                in_channels,
-                out_channels,
-                kernel_size,
-                stride,
-                padding,
-                bias=False,
-            ),
-            # nn.BatchNorm2d(out_channels),
-            nn.LeakyReLU(0.2),
-        )
-
-    def forward(self, x):
-        # x input-> dataset 256 x256 x 3 -> custmize ukrida dataset
-        return self.discriminator_D(x)
-
 
 class DCGAN_v2_D(nn.Module):
     def __init__(self, channels_img, features_d):
         super(DCGAN_v2_D, self).__init__()
         self.discriminator = nn.Sequential(
-            nn.Conv2d(channels_img, features_d, kernel_size=4, stride=2, padding=1),
-            nn.LeakyReLU(0.2),
-            self._block(features_d, features_d * 2, 4, 2, 1),
-            self._block(features_d * 2, features_d * 4, 4, 2, 1),
-            self._block(features_d * 4, features_d * 8, 4, 2, 1),
-            self._block(features_d * 8, features_d * 16, 4, 2, 1),  # New layer
-            nn.Conv2d(features_d * 16, 1, kernel_size=4, stride=1, padding=0),
-            nn.Sigmoid()
+            nn.Conv2d(channels_img, features_d, kernel_size=4, stride=2, padding=1),  # Layer konvolusi 1
+            nn.LeakyReLU(0.2),  # Fungsi aktivasi LeakyReLU
+            self._block(features_d, features_d * 2, 4, 2, 1),  # Blok konvolusi 1
+            self._block(features_d * 2, features_d * 4, 4, 2, 1),  # Blok konvolusi 2
+            self._block(features_d * 4, features_d * 8, 4, 2, 1),  # Blok konvolusi 3
+            self._block(features_d * 8, features_d * 16, 4, 2, 1),  # Blok konvolusi 4 (Baru)
+            nn.Conv2d(features_d * 16, 1, kernel_size=4, stride=1, padding=0),  # Convolutional layer terakhir
+            nn.Sigmoid()  # Fungsi aktivasi sigmoid
         )
 
     def _block(self, in_channels, out_channels, kernel_size, stride, padding):
@@ -139,20 +82,19 @@ class DCGAN_v2_D(nn.Module):
     def forward(self, x):
         return self.discriminator(x)
 
-
 class DCGAN_v2_G(nn.Module):
     def __init__(self, channels_noise, channels_img, features_g):
         super(DCGAN_v2_G, self).__init__()
         self.generator = nn.Sequential(
-            self._block(channels_noise, features_g * 16, 4, 1, 0),
-            self._block(features_g * 16, features_g * 8, 4, 2, 1),
-            self._block(features_g * 8, features_g * 4, 4, 2, 1),
-            self._block(features_g * 4, features_g * 2, 4, 2, 1),
-            self._block(features_g * 2, features_g, 4, 2, 1),  # New layer
+            self._block(channels_noise, features_g * 16, 4, 1, 0),  # Blok dekonvolusi 1
+            self._block(features_g * 16, features_g * 8, 4, 2, 1),  # Blok dekonvolusi 2
+            self._block(features_g * 8, features_g * 4, 4, 2, 1),  # Blok dekonvolusi 3
+            self._block(features_g * 4, features_g * 2, 4, 2, 1),  # Blok dekonvolusi 4
+            self._block(features_g * 2, features_g, 4, 2, 1),  # Blok dekonvolusi 5 (Baru)
             nn.ConvTranspose2d(
                 features_g, channels_img, kernel_size=4, stride=2, padding=1
-            ),
-            nn.Tanh()
+            ),  # Layer dekonvolusi terakhir
+            nn.Tanh()  # Fungsi aktivasi Tanh
         )
 
     def _block(self, in_channels, out_channels, kernel_size, stride, padding):
@@ -172,49 +114,7 @@ class DCGAN_v2_G(nn.Module):
     def forward(self, x):
         return self.generator(x)
 
-
-# Generator G
-
-
-class DCGAN_G(nn.Module):
-    def __init__(self, channels_noise, channels_img, features_g):
-        super(DCGAN_G, self).__init__()
-        self.generator_G = nn.Sequential(
-            # Input: N x channels_noise x 1 x 1
-            self._block(channels_noise, features_g * 16, 4, 1, 0),  # img: 4x4
-            self._block(features_g * 16, features_g * 8, 4, 2, 1),  # img: 8x8
-            self._block(features_g * 8, features_g * 4, 4, 2, 1),  # img: 16x16
-            self._block(features_g * 4, features_g * 2, 4, 2, 1),  # img: 32x32
-            nn.ConvTranspose2d(
-                features_g * 2, channels_img, kernel_size=4, stride=2, padding=1
-            ),
-            # Output: N x channels_img x 64 x 64
-            nn.Tanh(),
-        )
-
-    def _block(self, in_channels, out_channels, kernel_size, stride, padding):
-        return nn.Sequential(
-            nn.ConvTranspose2d(
-                in_channels,
-                out_channels,
-                kernel_size,
-                stride,
-                padding,
-                bias=False,
-            ),
-            # nn.BatchNorm2d(out_channels),
-            nn.ReLU(),
-        )
-
-    def forward(self, x):
-        return self.generator_G(x)
-
-# inisialisasi weight
-
-
 def initialize_weights(model):
-    # Initializes weights according to the DCGAN paper
     for m in model.modules():
         if isinstance(m, (nn.Conv2d, nn.ConvTranspose2d, nn.BatchNorm2d)):
             nn.init.normal_(m.weight.data, 0.0, 0.02)
-            # weight initialization technique, kaiming, method
