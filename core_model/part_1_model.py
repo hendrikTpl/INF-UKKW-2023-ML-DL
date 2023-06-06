@@ -1,3 +1,8 @@
+# Kelompok 3
+# 412020001 - Nico Sanjaya
+# 412020008 - Cristha Patrisya Pentury
+# 412020009 - Yohanes Stefanus
+
 import torch
 import torch.nn as nn
 

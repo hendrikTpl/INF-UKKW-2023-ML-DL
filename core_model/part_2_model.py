@@ -108,13 +108,69 @@ class DCGAN_D(nn.Module):
         return self.discriminator_D(x)
 
 
-class DCGAN_v2(nn.Module):
-    # disini bisa di define lagi customize DCGAN versi masing masing
-    pass
+class DCGAN_v2_D(nn.Module):
+    def __init__(self, channels_img, features_d):
+        super(DCGAN_v2_D, self).__init__()
+        self.discriminator = nn.Sequential(
+            nn.Conv2d(channels_img, features_d, kernel_size=4, stride=2, padding=1),
+            nn.LeakyReLU(0.2),
+            self._block(features_d, features_d * 2, 4, 2, 1),
+            self._block(features_d * 2, features_d * 4, 4, 2, 1),
+            self._block(features_d * 4, features_d * 8, 4, 2, 1),
+            self._block(features_d * 8, features_d * 16, 4, 2, 1),  # New layer
+            nn.Conv2d(features_d * 16, 1, kernel_size=4, stride=1, padding=0),
+            nn.Sigmoid()
+        )
+
+    def _block(self, in_channels, out_channels, kernel_size, stride, padding):
+        return nn.Sequential(
+            nn.Conv2d(
+                in_channels,
+                out_channels,
+                kernel_size,
+                stride,
+                padding,
+                bias=False
+            ),
+            nn.BatchNorm2d(out_channels),
+            nn.LeakyReLU(0.2)
+        )
+
+    def forward(self, x):
+        return self.discriminator(x)
 
 
 class DCGAN_v2_G(nn.Module):
-    pass
+    def __init__(self, channels_noise, channels_img, features_g):
+        super(DCGAN_v2_G, self).__init__()
+        self.generator = nn.Sequential(
+            self._block(channels_noise, features_g * 16, 4, 1, 0),
+            self._block(features_g * 16, features_g * 8, 4, 2, 1),
+            self._block(features_g * 8, features_g * 4, 4, 2, 1),
+            self._block(features_g * 4, features_g * 2, 4, 2, 1),
+            self._block(features_g * 2, features_g, 4, 2, 1),  # New layer
+            nn.ConvTranspose2d(
+                features_g, channels_img, kernel_size=4, stride=2, padding=1
+            ),
+            nn.Tanh()
+        )
+
+    def _block(self, in_channels, out_channels, kernel_size, stride, padding):
+        return nn.Sequential(
+            nn.ConvTranspose2d(
+                in_channels,
+                out_channels,
+                kernel_size,
+                stride,
+                padding,
+                bias=False
+            ),
+            nn.BatchNorm2d(out_channels),
+            nn.ReLU()
+        )
+
+    def forward(self, x):
+        return self.generator(x)
 
 
 # Generator G
@@ -162,9 +218,3 @@ def initialize_weights(model):
         if isinstance(m, (nn.Conv2d, nn.ConvTranspose2d, nn.BatchNorm2d)):
             nn.init.normal_(m.weight.data, 0.0, 0.02)
             # weight initialization technique, kaiming, method
-
-#
-# TODO:
-# supposedly you want to add new model, You can also define your customize  generator and discriminator GAN
-# DCGAN with custom dataset -> indonesian street food dataset
-# make your custom dataloader

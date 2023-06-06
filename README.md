@@ -1,3 +1,8 @@
+# Kelompok 3
+412020001 - Nico Sanjaya
+412020008 - Cristha Patrisya Pentury
+412020009 - Yohanes Stefanus
+
 # INF-UKKW-2023-ML-DL
 This repository contains the code for the Machine Learning and Deep Learning course at Krida Wacana Christian University.
 
