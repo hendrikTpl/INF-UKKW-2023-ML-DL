@@ -92,9 +92,13 @@ def main():
         train_loss = train(model, train_loader, criterion, optimizer)
         print(f"Epoch {epoch+1}/{10}, Training Loss: {train_loss}")
 
+    # Save the model weights
+    torch.save(model.state_dict(), "C:/Users/Asus/ML-2023/INF-UKKW-2023-ML-DL/core_model/model_weights.pth")
+
     # Test the model
     test_accuracy = test(model, test_loader)
-    print(f"Test Accuracy: {test_accuracy}")
+    formatted_accuracy = "{:.2%}".format(test_accuracy)  # Format test accuracy with two digits in front of the comma
+    print(f"Test Accuracy: {formatted_accuracy}")
 
 
 if __name__ == '__main__':
